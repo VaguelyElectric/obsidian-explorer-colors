@@ -6,3 +6,92 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+:root {
+	--current-color: #d0d0d0;
+	--default-text-color: #d0d0d0;
+	--highlight: #fff;
+	--shadow: #0b0c2c;
+
+	--nav-item-weight-hover: bold;
+}
+
+/* Light Theme Specific Properties */
+.theme-light {
+	--contrast-color: var(--shadow);
+	--default-text-color: var(--shadow);
+	--bg-contrast-amount: 70%;
+	--fg-contrast-amount: 30%;
+	--medium-constrast-amount: 60%;
+	--active-contrast-amount: 30%;
+}
+
+/* Dark Theme Specific Properties */
+.theme-dark {
+	--contrast-color: var(--highlight);
+	--bg-contrast-amount: 15%;
+	--fg-contrast-amount: 40%;
+	--medium-constrast-amount: 20%;
+	--active-contrast-amount: 10%;
+}
+
+/* General Styles */
+.nav-folder-title {
+	color: var(--current-color);
+	--nav-item-color-hover: color-mix(
+		in srgb,
+		var(--current-color) var(--fg-contrast-amount),
+	  	var(--contrast-color)
+	);
+	--nav-item-background-hover: color-mix(
+	  	in srgb,
+	  	var(--current-color) var(--bg-contrast-amount),
+	  	transparent
+	);
+	--background-modifier-border-focus: color-mix(
+	  	in srgb,
+	  	var(--current-color) 40%,
+	  	transparent
+	);
+	--nav-collapse-icon-color: color-mix(
+	  in srgb,
+	  var(--current-color) 60%,
+	  transparent
+	);
+}
+.nav-folder-title:hover {
+	--nav-collapse-icon-color: color-mix(
+		in srgb,
+		var(--current-color) 60%,
+		var(--contrast-color)
+	);
+}
+.tree-item-children:has(.nav-file-title) {
+	--nav-indentation-guide-color: color-mix(
+		in srgb,
+		var(--current-color) var(--medium-constrast-amount),
+		transparent
+	);
+}
+.tree-item-children .nav-file-title, .nav-file-title {
+	color: color-mix(
+		in srgb,
+		var(--current-color) var(--medium-constrast-amount),
+		var(--default-text-color)
+	);
+	--nav-item-background-hover: color-mix(
+		in srgb,
+		color-mix(in srgb, var(--current-color) 50%, var(--highlight)) var(--bg-contrast-amount),
+		transparent
+	);
+	--background-modifier-border-focus: color-mix(
+		in srgb,
+		var(--current-color) 40%,
+		transparent
+	);
+	--nav-item-background-active: color-mix(
+		in srgb,
+		var(--current-color) var(--active-contrast-amount),
+		transparent
+	);
+}

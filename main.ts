@@ -1,104 +1,224 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {
+	App,
+	ButtonComponent,
+	ColorComponent,
+	Menu,
+	Modal,
+	Notice,
+	Plugin,
+	PluginSettingTab,
+	TAbstractFile,
+	View,
+} from 'obsidian';
 
-// Remember to rename these classes and interfaces!
+interface ExplorerColorsSettings {}
 
-interface MyPluginSettings {
-	mySetting: string;
+const DEFAULT_SETTINGS: ExplorerColorsSettings = {}
+
+interface NavItemSettings {
+	itemColor?: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+interface ExtensionFile extends TAbstractFile {
+	extension?: string;
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+interface FileExplorerItem extends HTMLElement {
+	el: HTMLElement;
+}
+
+interface FileExplorerView extends View {
+	fileItems: Record<string, FileExplorerItem>;
+}
+
+export default class ExplorerColours extends Plugin {
+	private data: Record<string, ExplorerColorsSettings | NavItemSettings>
 
 	async onload() {
-		await this.loadSettings();
+		await this.loadAllData();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		this.app.workspace.onLayoutReady(() => this.initData());
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status Bar Text');
+		this.registerEvent(
+			this.app.workspace.on('file-menu', (menu: Menu, file: ExtensionFile) => {
+				menu.addItem((item) => {
+					const itemType = file.extension == undefined ? 'Folder' : 'File';
+					const message = 'Set ' + itemType + ' Color';
+					item.setTitle(message)
+						.setIcon('palette')
+						.onClick(async () => {
+							new ColorPickerModal(this.app, this, file.path, itemType).open();
+						});
+				});
+			})
+		);
 
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: 'Open sample modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: 'Sample editor command',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('Sample Editor Command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: 'Open sample modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
+		this.addSettingTab(new ExplorerColorsSettingTab(this.app, this));
+	}
 
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
+	onunload() {}
+
+	getData(): Record<string, ExplorerColorsSettings | NavItemSettings> {
+		return this.data;
+	}
+
+	getSettings(): ExplorerColorsSettings {
+		return this.data.settings as ExplorerColorsSettings;
+	}
+
+	addItemColor(path: string, colorHex: string) {
+		this.getData()[path] = {
+			itemColor: colorHex,
+		};
+
+		this.saveAllData();
+
+		const fileElement = this.findFileElement(path);
+		if (fileElement) {
+			this.applyItemColor(fileElement.el, colorHex);
+		}
+	}
+
+	getItemColor(path: string): string | undefined {
+		const pathColorData = this.getData()[path];
+
+		if (!pathColorData) {
+			return undefined;
+		}
+
+		return (pathColorData as NavItemSettings).itemColor;
+	}
+
+	removeItemColor(path: string) {
+		delete this.getData()[path];
+
+		this.saveAllData();
+
+		const fileElement = this.findFileElement(path);
+		if (fileElement) {
+			this.applyItemColor(fileElement.el, 'inherit');
+		}
+	}
+
+	async loadAllData() {
+		const data = await this.loadData();
+		if (data) {
+			Object.entries(DEFAULT_SETTINGS).forEach(([key, value]) => {
+				if (data.settings[key] == undefined) {
+					data.settings[key] = value;
+				}
+			});
+		}
+		this.data = Object.assign({ settings: { ...DEFAULT_SETTINGS } }, {}, data)
+	}
+
+	async saveAllData() {
+		await this.saveData(this.data);
+	}
+
+	findFileElement(path: string): FileExplorerItem | undefined {
+		const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
+		var fileElement: FileExplorerItem | undefined;
+		for (const fileExplorer of fileExplorers) {
+			fileElement = (fileExplorer.view as FileExplorerView).fileItems[path];
+		}
+
+		return fileElement;
+	}
+
+	applyItemColor(fileItem: HTMLElement, colorHex: string) {
+		fileItem.setCssProps({'--current-color': colorHex});
+	}
+
+	initData() {
+		const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
+		const data = Object.entries(this.data) as [
+			string,
+			NavItemSettings
+		][];
+
+		for (const fileExplorer of fileExplorers) {
+			for (const [path, value] of data) {
+				const fileItem = (fileExplorer.view as FileExplorerView).fileItems[path];
+				if (fileItem && value.itemColor) {
+					this.applyItemColor(fileItem.el, value.itemColor || 'inherit');
 				}
 			}
-		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-	}
-
-	onunload() {
-
-	}
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
+		}
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
+class ColorPickerModal extends Modal {
+	private plugin: ExplorerColours;
+	private path: string;
+	private itemType: string;
+
+	private userColor?: string;
+
+	constructor(app: App, plugin: ExplorerColours, path: string, itemType: string) {
 		super(app);
+		this.plugin = plugin;
+		this.path = path;
+		this.itemType = itemType;
+
+		this.userColor = this.plugin.getItemColor(this.path);
+
+		this.contentEl.style.display = 'block';
+		this.modalEl.classList.add('color-picker-modal');
+		this.titleEl.setText('Change color');
+
+		const pickerBlock = this.contentEl.createDiv();
+		const footerBlock = this.contentEl.createDiv();
+
+		// Picker Block
+		pickerBlock.style.display = 'flex';
+		pickerBlock.style.alignItems = 'flex-end';
+		pickerBlock.style.justifyContent = 'start';
+
+		const description = pickerBlock.createEl('p', {
+			text: 'Select a color for this ' + this.itemType,
+			cls: 'color-picker-description'
+		});
+		description.style.marginBottom = 'var(--size-2-2)';
+		description.style.marginRight = 'var(--size-4-4)';
+
+		const colorPicker = new ColorComponent(pickerBlock);
+		colorPicker.setValue(this.userColor || '#000000')
+			.onChange((value) => {
+				this.userColor = value;
+			});
+
+		// Footer Block
+		footerBlock.style.display = 'flex';
+		footerBlock.style.alignItems = 'flex-end';
+		footerBlock.style.justifyContent = 'end';
+
+		const resetButton = new ButtonComponent(footerBlock);
+		resetButton.buttonEl.style.marginLeft = 'var(--size-4-4)';
+		resetButton.buttonEl.style.float = 'right';
+		resetButton.setButtonText('Reset');
+		resetButton.onClick(() => {
+			colorPicker.setValue('#000000');
+			this.userColor = undefined;
+		});
+
+		const saveButton = new ButtonComponent(footerBlock);
+		saveButton.buttonEl.style.marginLeft = 'var(--size-4-4)';
+		saveButton.buttonEl.style.float = 'right';
+		saveButton.setButtonText('Save');
+		saveButton.onClick(() => {
+			new Notice(this.itemType + ' color changed');
+			if (this.userColor) {
+				this.plugin.addItemColor(this.path, this.userColor);
+			} else {
+				this.plugin.removeItemColor(this.path);
+			}
+			this.close();
+		});
 	}
 
 	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
+		super.onOpen();
 	}
 
 	onClose() {
@@ -107,10 +227,10 @@ class SampleModal extends Modal {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class ExplorerColorsSettingTab extends PluginSettingTab {
+	plugin: ExplorerColours;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: ExplorerColours) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -119,16 +239,5 @@ class SampleSettingTab extends PluginSettingTab {
 		const {containerEl} = this;
 
 		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
 	}
 }
