@@ -6,7 +6,6 @@ import {
 	Modal,
 	Notice,
 	Plugin,
-	PluginSettingTab,
 	TAbstractFile,
 	View,
 } from 'obsidian';
@@ -52,8 +51,6 @@ export default class ExplorerColours extends Plugin {
 				});
 			})
 		);
-
-		this.addSettingTab(new ExplorerColorsSettingTab(this.app, this));
 	}
 
 	onunload() {}
@@ -224,20 +221,5 @@ class ColorPickerModal extends Modal {
 	onClose() {
 		const {contentEl} = this;
 		contentEl.empty();
-	}
-}
-
-class ExplorerColorsSettingTab extends PluginSettingTab {
-	plugin: ExplorerColours;
-
-	constructor(app: App, plugin: ExplorerColours) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		const {containerEl} = this;
-
-		containerEl.empty();
 	}
 }
