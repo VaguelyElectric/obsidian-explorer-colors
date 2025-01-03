@@ -1,12 +1,3 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
-
 :root {
 	--current-color: #d0d0d0;
 	--default-text-color: #d0d0d0;
@@ -16,7 +7,7 @@ If your plugin does not need CSS, delete this file.
 	--nav-item-weight-hover: bold;
 }
 
-/* Light Theme Specific Properties */
+/* Light Theme Specific Variables */
 .theme-light {
 	--contrast-color: var(--shadow);
 	--default-text-color: var(--shadow);
@@ -26,7 +17,7 @@ If your plugin does not need CSS, delete this file.
 	--active-contrast-amount: 30%;
 }
 
-/* Dark Theme Specific Properties */
+/* Dark Theme Specific Variables */
 .theme-dark {
 	--contrast-color: var(--highlight);
 	--bg-contrast-amount: 15%;
@@ -35,7 +26,30 @@ If your plugin does not need CSS, delete this file.
 	--active-contrast-amount: 10%;
 }
 
-/* General Styles */
+/* Styles for the Color Picker Modal */
+.explorer-colors-color-picker-modal {
+	display: block;
+}
+.explorer-colors-color-picker-modal .picker-container {
+	display: flex;
+	align-items: flex-end;
+	justify-content: start;
+}
+.explorer-colors-color-picker-modal .footer-container {
+	display: flex;
+	align-items: flex-end;
+	justify-content: end;
+}
+.explorer-colors-color-picker-modal .picker-container .picker-description {
+	margin-bottom: var(--size-2-2);
+	margin-right: var(--size-4-4);
+}
+.explorer-colors-color-picker-modal .footer-container button {
+	margin-left: var(--size-4-4);
+	float: right;
+}
+
+/* Styles for customised Explorer items */
 .nav-folder-title {
 	color: var(--current-color);
 	--nav-item-color-hover: color-mix(

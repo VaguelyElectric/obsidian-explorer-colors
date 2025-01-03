@@ -115,7 +115,7 @@ export default class ExplorerColours extends Plugin {
 
 	findFileElement(path: string): FileExplorerItem | undefined {
 		const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
-		var fileElement: FileExplorerItem | undefined;
+		let fileElement: FileExplorerItem | undefined;
 		for (const fileExplorer of fileExplorers) {
 			fileElement = (fileExplorer.view as FileExplorerView).fileItems[path];
 		}
@@ -160,24 +160,16 @@ class ColorPickerModal extends Modal {
 
 		this.userColor = this.plugin.getItemColor(this.path);
 
-		this.contentEl.style.display = 'block';
-		this.modalEl.classList.add('color-picker-modal');
+		this.modalEl.classList.add('explorer-colors-color-picker-modal');
 		this.titleEl.setText('Change color');
 
-		const pickerBlock = this.contentEl.createDiv();
-		const footerBlock = this.contentEl.createDiv();
-
 		// Picker Block
-		pickerBlock.style.display = 'flex';
-		pickerBlock.style.alignItems = 'flex-end';
-		pickerBlock.style.justifyContent = 'start';
+		const pickerBlock = this.contentEl.createDiv({ cls: 'picker-container' });
 
-		const description = pickerBlock.createEl('p', {
+		pickerBlock.createEl('p', {
 			text: 'Select a color for this ' + this.itemType,
-			cls: 'color-picker-description'
+			cls: 'picker-description'
 		});
-		description.style.marginBottom = 'var(--size-2-2)';
-		description.style.marginRight = 'var(--size-4-4)';
 
 		const colorPicker = new ColorComponent(pickerBlock);
 		colorPicker.setValue(this.userColor || '#000000')
@@ -186,13 +178,9 @@ class ColorPickerModal extends Modal {
 			});
 
 		// Footer Block
-		footerBlock.style.display = 'flex';
-		footerBlock.style.alignItems = 'flex-end';
-		footerBlock.style.justifyContent = 'end';
+		const footerBlock = this.contentEl.createDiv({ cls: 'footer-container' });
 
 		const resetButton = new ButtonComponent(footerBlock);
-		resetButton.buttonEl.style.marginLeft = 'var(--size-4-4)';
-		resetButton.buttonEl.style.float = 'right';
 		resetButton.setButtonText('Reset');
 		resetButton.onClick(() => {
 			colorPicker.setValue('#000000');
@@ -200,8 +188,6 @@ class ColorPickerModal extends Modal {
 		});
 
 		const saveButton = new ButtonComponent(footerBlock);
-		saveButton.buttonEl.style.marginLeft = 'var(--size-4-4)';
-		saveButton.buttonEl.style.float = 'right';
 		saveButton.setButtonText('Save');
 		saveButton.onClick(() => {
 			new Notice(this.itemType + ' color changed');

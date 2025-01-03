@@ -1,9 +1,9 @@
 {
-	"id": "obsidian-explorer-colors",
+	"id": "explorer-colors",
 	"name": "Explorer Colors",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
-	"description": "Set cascading colors for files and folders in Obsidian.",
+	"description": "Set custom colors for files and folders.",
 	"author": "Scott Van der Zwet",
 	"authorUrl": "https://github.com/VaguelyElectric",
 	"fundingUrl": "https://buymeacoffee.com/vaguelyelectric",
