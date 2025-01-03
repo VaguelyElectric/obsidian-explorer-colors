@@ -22,6 +22,10 @@ These are a few features that I would like to add in the future:
 
 If you have any feature requests or suggestions, please feel free to open an issue or preferably, a pull request.
 
+## Credits
+
+The plugin is inspired by the work of other great creators in the community, namely I would like to thank FlorianWoelki and the rest of the [Obsidian Iconize](https://github.com/FlorianWoelki/obsidian-iconize) developers, as well as CyanVoxel's [Obsidian-Colored-Sidebar](https://github.com/CyanVoxel/Obsidian-Colored-Sidebar). Please check out their work I wouldn't be here without them!
+
 ## Support
 Finally, If you would like to show your support, consider buying me a coffee. It would be greatly appreciated!
 
