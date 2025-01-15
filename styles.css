@@ -69,10 +69,10 @@
 }
 
 .explorer-colors-color-picker-modal .checkbox-container.is-disabled::after {
-	background-color: #808080;
+	background-color: gray;
 }
 
-/* General style overrides */
+/* General style overrides for Explorer items */
 .nav-folder-title:hover {
 	--nav-collapse-icon-color: color-mix(
 		in srgb,
@@ -90,22 +90,53 @@
 }
 
 /* Styles for customised Explorer items */
-.explorer-color-enabled > .nav-folder-title {
-	color: var(--current-color);
-
+.explorer-color-enabled > .nav-file-title, .explorer-color-enabled > .nav-folder-title{
 	--nav-item-color-hover: color-mix(
 		in srgb,
 		var(--current-color) var(--fg-contrast-amount),
 		var(--contrast-color)
 	);
+	--background-modifier-border-focus: color-mix(
+		in srgb,
+		var(--current-color) 40%,
+		transparent
+	);
+}
+
+.explorer-cascade-enabled .nav-file-title, .explorer-cascade-enabled .nav-folder-title {
+	--nav-item-color-hover: color-mix(
+		in srgb,
+		var(--current-color) var(--fg-contrast-amount),
+		var(--contrast-color)
+	);
+	--background-modifier-border-focus: color-mix(
+		in srgb,
+		var(--current-color) 40%,
+		transparent
+	);
+}
+
+.explorer-color-enabled > .nav-folder-title {
+	color: var(--current-color);
+
 	--nav-item-background-hover: color-mix(
 		in srgb,
 		var(--current-color) var(--bg-contrast-amount),
 		transparent
 	);
-	--background-modifier-border-focus: color-mix(
+	--nav-collapse-icon-color: color-mix(
 		in srgb,
-		var(--current-color) 40%,
+		var(--current-color) 60%,
+		transparent
+	);
+}
+
+.explorer-cascade-enabled .nav-folder-title {
+	color: var(--current-color);
+
+	--nav-item-background-hover: color-mix(
+		in srgb,
+		var(--current-color) var(--bg-contrast-amount),
 		transparent
 	);
 	--nav-collapse-icon-color: color-mix(
@@ -130,19 +161,9 @@
 		var(--default-text-color)
 	);
 
-	--nav-item-color-hover: color-mix(
-		in srgb,
-		var(--current-color) var(--fg-contrast-amount),
-		var(--contrast-color)
-	);
 	--nav-item-background-hover: color-mix(
 		in srgb,
 		color-mix(in srgb, var(--current-color) 50%, var(--highlight)) var(--bg-contrast-amount),
-		transparent
-	);
-	--background-modifier-border-focus: color-mix(
-		in srgb,
-		var(--current-color) 40%,
 		transparent
 	);
 	--nav-item-background-active: color-mix(
@@ -160,52 +181,12 @@
 	);
 }
 
-/* Styles for customised Explorer items with cascade */
-.explorer-cascade-enabled .nav-folder-title {
-	color: var(--current-color);
-
-	--nav-item-color-hover: color-mix(
-		in srgb,
-		var(--current-color) var(--fg-contrast-amount),
-		var(--contrast-color)
-	);
-	--nav-item-background-hover: color-mix(
-		in srgb,
-		var(--current-color) var(--bg-contrast-amount),
-		transparent
-	);
-	--background-modifier-border-focus: color-mix(
-		in srgb,
-		var(--current-color) 40%,
-		transparent
-	);
-	--nav-collapse-icon-color: color-mix(
-		in srgb,
-		var(--current-color) 60%,
-		transparent
-	);
-}
-
 .explorer-cascade-enabled .nav-file-title {
-	color: color-mix(
-		in srgb,
-		var(--current-color) var(--medium-contrast-amount),
-		var(--default-text-color)
-	);
+	color: color-mix(in srgb, var(--current-color) var(--medium-contrast-amount), var(--default-text-color));
 
-	--nav-item-color-hover: color-mix(
-		in srgb,
-		var(--current-color) var(--fg-contrast-amount),
-		var(--contrast-color)
-	);
 	--nav-item-background-hover: color-mix(
 		in srgb,
 		color-mix(in srgb, var(--current-color) 50%, var(--highlight)) var(--bg-contrast-amount),
-		transparent
-	);
-	--background-modifier-border-focus: color-mix(
-		in srgb,
-		var(--current-color) 40%,
 		transparent
 	);
 	--nav-item-background-active: color-mix(
