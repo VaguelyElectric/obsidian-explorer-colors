@@ -6,7 +6,7 @@ import {
 	Modal,
 	Notice,
 	Plugin,
-	TAbstractFile,
+	TAbstractFile, ToggleComponent,
 	View,
 } from 'obsidian';
 
@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS: ExplorerColorsSettings = {}
 
 interface NavItemSettings {
 	itemColor?: string;
+	cascadeEnabled?: boolean;
 }
 
 interface ExtensionFile extends TAbstractFile {
@@ -30,6 +31,11 @@ interface FileExplorerView extends View {
 	fileItems: Record<string, FileExplorerItem>;
 }
 
+enum ITEM_TYPE {
+	FILE = 'File',
+	FOLDER = 'Folder',
+}
+
 export default class ExplorerColours extends Plugin {
 	private data: Record<string, ExplorerColorsSettings | NavItemSettings>
 
@@ -41,7 +47,7 @@ export default class ExplorerColours extends Plugin {
 		this.registerEvent(
 			this.app.workspace.on('file-menu', (menu: Menu, file: ExtensionFile) => {
 				menu.addItem((item) => {
-					const itemType = file.extension == undefined ? 'Folder' : 'File';
+					const itemType = file.extension == undefined ? ITEM_TYPE.FOLDER : ITEM_TYPE.FILE;
 					const message = 'Set ' + itemType + ' Color';
 					item.setTitle(message)
 						.setIcon('palette')
@@ -63,27 +69,28 @@ export default class ExplorerColours extends Plugin {
 		return this.data.settings as ExplorerColorsSettings;
 	}
 
-	addItemColor(path: string, colorHex: string) {
+	addItemColor(path: string, colorHex: string, cascade: boolean = false) {
 		this.getData()[path] = {
 			itemColor: colorHex,
+			cascadeEnabled: cascade,
 		};
 
 		this.saveAllData();
 
 		const fileElement = this.findFileElement(path);
 		if (fileElement) {
-			this.applyItemColor(fileElement.el, colorHex);
+			this.applyItemColor(fileElement.el, colorHex, cascade);
 		}
 	}
 
-	getItemColor(path: string): string | undefined {
+	getItemSettings(path: string): NavItemSettings | undefined {
 		const pathColorData = this.getData()[path];
 
 		if (!pathColorData) {
 			return undefined;
 		}
 
-		return (pathColorData as NavItemSettings).itemColor;
+		return (pathColorData as NavItemSettings);
 	}
 
 	removeItemColor(path: string) {
@@ -93,7 +100,7 @@ export default class ExplorerColours extends Plugin {
 
 		const fileElement = this.findFileElement(path);
 		if (fileElement) {
-			this.applyItemColor(fileElement.el, 'inherit');
+			this.applyItemColor(fileElement.el, 'inherit', false);
 		}
 	}
 
@@ -123,8 +130,15 @@ export default class ExplorerColours extends Plugin {
 		return fileElement;
 	}
 
-	applyItemColor(fileItem: HTMLElement, colorHex: string) {
+	applyItemColor(fileItem: HTMLElement, colorHex: string, cascade: boolean) {
+		fileItem.classList.add('explorer-color-enabled');
 		fileItem.setCssProps({'--current-color': colorHex});
+
+		if (cascade) {
+			fileItem.classList.add('explorer-cascade-enabled');
+		} else {
+			fileItem.classList.remove('explorer-cascade-enabled');
+		}
 	}
 
 	initData() {
@@ -138,7 +152,11 @@ export default class ExplorerColours extends Plugin {
 			for (const [path, value] of data) {
 				const fileItem = (fileExplorer.view as FileExplorerView).fileItems[path];
 				if (fileItem && value.itemColor) {
-					this.applyItemColor(fileItem.el, value.itemColor || 'inherit');
+					this.applyItemColor(
+						fileItem.el,
+						value.itemColor || 'inherit',
+						value.cascadeEnabled || false,
+					);
 				}
 			}
 		}
@@ -148,33 +166,50 @@ export default class ExplorerColours extends Plugin {
 class ColorPickerModal extends Modal {
 	private plugin: ExplorerColours;
 	private path: string;
-	private itemType: string;
+	private itemType: ITEM_TYPE;
 
 	private userColor?: string;
+	private userCascade?: boolean;
 
-	constructor(app: App, plugin: ExplorerColours, path: string, itemType: string) {
+	constructor(app: App, plugin: ExplorerColours, path: string, itemType: ITEM_TYPE) {
 		super(app);
 		this.plugin = plugin;
 		this.path = path;
 		this.itemType = itemType;
 
-		this.userColor = this.plugin.getItemColor(this.path);
+		const currentSettings = this.plugin.getItemSettings(this.path);
+		if (currentSettings) {
+			this.userColor = currentSettings.itemColor;
+			this.userCascade = currentSettings.cascadeEnabled;
+		}
 
 		this.modalEl.classList.add('explorer-colors-color-picker-modal');
 		this.titleEl.setText('Change color');
 
-		// Picker Block
-		const pickerBlock = this.contentEl.createDiv({ cls: 'picker-container' });
+		// Settings Block
+		const settingsBlock = this.contentEl.createDiv({ cls: 'settings-container' });
 
-		pickerBlock.createEl('p', {
+		const pickerSetting = settingsBlock.createDiv();
+		pickerSetting.createEl('p', {
 			text: 'Select a color for this ' + this.itemType,
 			cls: 'picker-description'
 		});
-
-		const colorPicker = new ColorComponent(pickerBlock);
+		const colorPicker = new ColorComponent(pickerSetting);
 		colorPicker.setValue(this.userColor || '#000000')
 			.onChange((value) => {
 				this.userColor = value;
+			});
+
+		const cascadeSetting = settingsBlock.createDiv();
+		cascadeSetting.createEl('p', {
+			text: 'Enable Cascade?',
+			cls: 'picker-description'
+		});
+		const toggle = new ToggleComponent(cascadeSetting);
+		toggle.setValue(this.userCascade || false)
+			.setDisabled(itemType == ITEM_TYPE.FILE)
+			.onChange((value) => {
+				this.userCascade = value;
 			});
 
 		// Footer Block
@@ -185,6 +220,7 @@ class ColorPickerModal extends Modal {
 		resetButton.onClick(() => {
 			colorPicker.setValue('#000000');
 			this.userColor = undefined;
+			this.userCascade = undefined;
 		});
 
 		const saveButton = new ButtonComponent(footerBlock);
@@ -192,7 +228,7 @@ class ColorPickerModal extends Modal {
 		saveButton.onClick(() => {
 			new Notice(this.itemType + ' color changed');
 			if (this.userColor) {
-				this.plugin.addItemColor(this.path, this.userColor);
+				this.plugin.addItemColor(this.path, this.userColor, this.userCascade);
 			} else {
 				this.plugin.removeItemColor(this.path);
 			}
