@@ -2,11 +2,10 @@ import {
 	App,
 	ButtonComponent,
 	ColorComponent,
-	Menu,
 	Modal,
 	Notice,
 	Plugin,
-	TAbstractFile,
+	TFolder,
 	View,
 } from 'obsidian';
 
@@ -18,16 +17,17 @@ interface NavItemSettings {
 	itemColor?: string;
 }
 
-interface ExtensionFile extends TAbstractFile {
-	extension?: string;
-}
-
 interface FileExplorerItem extends HTMLElement {
 	el: HTMLElement;
 }
 
 interface FileExplorerView extends View {
 	fileItems: Record<string, FileExplorerItem>;
+}
+
+enum ITEM_TYPE {
+	FILE = 'file',
+	FOLDER = 'folder',
 }
 
 export default class ExplorerColours extends Plugin {
@@ -39,10 +39,10 @@ export default class ExplorerColours extends Plugin {
 		this.app.workspace.onLayoutReady(() => this.initData());
 
 		this.registerEvent(
-			this.app.workspace.on('file-menu', (menu: Menu, file: ExtensionFile) => {
+			this.app.workspace.on('file-menu', (menu, file) => {
 				menu.addItem((item) => {
-					const itemType = file.extension == undefined ? 'Folder' : 'File';
-					const message = 'Set ' + itemType + ' Color';
+					const itemType = file instanceof TFolder ? ITEM_TYPE.FOLDER : ITEM_TYPE.FILE;
+					const message = 'Set ' + itemType + ' color';
 					item.setTitle(message)
 						.setIcon('palette')
 						.onClick(async () => {
@@ -50,6 +50,16 @@ export default class ExplorerColours extends Plugin {
 						});
 				});
 			})
+		);
+
+		this.registerEvent(
+			this.app.vault.on('rename', (file, oldPath) => {
+				const existingSettings = this.getItemColor(oldPath);
+				if (existingSettings) {
+					this.addItemColor(file.path, existingSettings);
+					this.removeItemColor(oldPath, false);
+				}
+			}),
 		);
 	}
 
@@ -86,14 +96,15 @@ export default class ExplorerColours extends Plugin {
 		return (pathColorData as NavItemSettings).itemColor;
 	}
 
-	removeItemColor(path: string) {
+	removeItemColor(path: string, redraw = true) {
 		delete this.getData()[path];
-
 		this.saveAllData();
 
-		const fileElement = this.findFileElement(path);
-		if (fileElement) {
-			this.applyItemColor(fileElement.el, 'inherit');
+		if (redraw) {
+			const fileElement = this.findFileElement(path);
+			if (fileElement) {
+				this.applyItemColor(fileElement.el, 'inherit');
+			}
 		}
 	}
 
@@ -117,6 +128,10 @@ export default class ExplorerColours extends Plugin {
 		const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
 		let fileElement: FileExplorerItem | undefined;
 		for (const fileExplorer of fileExplorers) {
+			if (fileExplorer.isDeferred) {
+				continue;
+			}
+
 			fileElement = (fileExplorer.view as FileExplorerView).fileItems[path];
 		}
 
@@ -124,7 +139,7 @@ export default class ExplorerColours extends Plugin {
 	}
 
 	applyItemColor(fileItem: HTMLElement, colorHex: string) {
-		fileItem.setCssProps({'--current-color': colorHex});
+		fileItem.setCssProps({'--explorer-colors-current-color': colorHex});
 	}
 
 	initData() {
@@ -135,6 +150,10 @@ export default class ExplorerColours extends Plugin {
 		][];
 
 		for (const fileExplorer of fileExplorers) {
+			if (fileExplorer.isDeferred) {
+				continue;
+			}
+
 			for (const [path, value] of data) {
 				const fileItem = (fileExplorer.view as FileExplorerView).fileItems[path];
 				if (fileItem && value.itemColor) {
@@ -147,8 +166,8 @@ export default class ExplorerColours extends Plugin {
 
 class ColorPickerModal extends Modal {
 	private plugin: ExplorerColours;
-	private path: string;
-	private itemType: string;
+	private readonly path: string;
+	private readonly itemType: string;
 
 	private userColor?: string;
 

@@ -1,5 +1,5 @@
-# Obsidian Explorer Colors
-Set cascading colors for files and folders in Obsidian.
+# Explorer Colors
+Set cascading colors for files and folders in [Obsidian](https://obsidian.md/).
 
 <img src="docs/explorer-preview-image.png" alt="Explorer Preview Image" width="300"/>
 
