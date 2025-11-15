@@ -11,7 +11,7 @@
 	--explorer-colors-default-text-color: var(--explorer-colors-shadow);
 	--explorer-colors-bg-contrast-amount: 70%;
 	--explorer-colors-fg-contrast-amount: 30%;
-	--explorer-colors-medium-constrast-amount: 60%;
+	--explorer-colors-medium-contrast-amount: 60%;
 	--explorer-colors-active-contrast-amount: 30%;
 }
 
@@ -20,90 +20,186 @@
 	--explorer-colors-contrast-color: var(--explorer-colors-highlight);
 	--explorer-colors-bg-contrast-amount: 15%;
 	--explorer-colors-fg-contrast-amount: 40%;
-	--explorer-colors-medium-constrast-amount: 20%;
+	--explorer-colors-medium-contrast-amount: 20%;
 	--explorer-colors-active-contrast-amount: 10%;
 }
 
-/* Styles for the Color Picker Modal */
-.explorer-colors-color-picker-modal {
+/* Styles for the Item Settings Modal */
+.explorer-colors-item-settings-modal {
 	display: block;
 }
-.explorer-colors-color-picker-modal .picker-container {
+.explorer-colors-item-settings-modal .settings-container {
 	display: flex;
-	align-items: flex-end;
-	justify-content: start;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: end;
+	max-width: 300px;
 }
-.explorer-colors-color-picker-modal .footer-container {
+.explorer-colors-color-settings-modal .settings-container > div {
+	width: 100%;
+	margin-bottom: var(--size-2-2);
+	display: flex;
+	flex-direction: row;
+	align-items: flex-end;
+	justify-content: space-between;
+}
+.explorer-colors-item-settings-modal .footer-container {
 	display: flex;
 	align-items: flex-end;
 	justify-content: end;
 }
-.explorer-colors-color-picker-modal .picker-container .picker-description {
+.explorer-colors-item-settings-modal .settings-container p {
 	margin-bottom: var(--size-2-2);
+	margin-top: var(--size-2-2);
 	margin-right: var(--size-4-4);
 }
-.explorer-colors-color-picker-modal .footer-container button {
+.explorer-colors-color-settings-modal .checkbox-container {
+	margin-bottom: var(--size-2-2);
+}
+.explorer-colors-item-settings-modal .footer-container button {
 	margin-left: var(--size-4-4);
 	float: right;
 }
-
-/* Styles for customised Explorer items */
-.nav-folder-title {
-	color: var(--explorer-colors-current-color);
-	--nav-item-color-hover: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-fg-contrast-amount),
-	  	var(--explorer-colors-contrast-color)
-	);
-	--nav-item-background-hover: color-mix(
-	  	in srgb,
-	  	var(--explorer-colors-current-color) var(--explorer-colors-bg-contrast-amount),
-	  	transparent
-	);
-	--background-modifier-border-focus: color-mix(
-	  	in srgb,
-	  	var(--explorer-colors-current-color) 40%,
-	  	transparent
-	);
-	--nav-collapse-icon-color: color-mix(
-	  in srgb,
-	  var(--explorer-colors-current-color) 60%,
-	  transparent
-	);
+.explorer-colors-color-picker-modal .checkbox-container.is-disabled::after {
+	background-color: gray;
 }
+
+/* General style overrides for Explorer items */
 .nav-folder-title:hover {
 	--nav-collapse-icon-color: color-mix(
 		in srgb,
-		var(--explorer-colors-current-color) 60%,
+		var(--explorer-colors-default-text-color) 60%,
 		var(--explorer-colors-contrast-color)
 	);
 }
+
 .tree-item-children:has(.nav-file-title) {
 	--nav-indentation-guide-color: color-mix(
 		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-medium-constrast-amount),
+		var(--explorer-colors-default-text-color) var(--explorer-colors-medium-contrast-amount),
 		transparent
 	);
 }
-.tree-item-children .nav-file-title, .nav-file-title {
-	color: color-mix(
+
+/* Styles for customised Explorer items */
+.explorer-color-enabled > .nav-file-title, .explorer-color-enabled > .nav-folder-title{
+	--nav-item-color-hover: color-mix(
 		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-medium-constrast-amount),
-		var(--explorer-colors-default-text-color)
-	);
-	--nav-item-background-hover: color-mix(
-		in srgb,
-		color-mix(in srgb, var(--explorer-colors-current-color) 50%, var(--explorer-colors-highlight)) var(--explorer-colors-bg-contrast-amount),
-		transparent
+		var(--explorer-colors-current-color) var(--explorer-colors-fg-contrast-amount),
+		var(--explorer-colors-contrast-color)
 	);
 	--background-modifier-border-focus: color-mix(
 		in srgb,
 		var(--explorer-colors-current-color) 40%,
 		transparent
 	);
+}
+
+.explorer-cascade-enabled .nav-file-title, .explorer-cascade-enabled .nav-folder-title {
+	--nav-item-color-hover: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-fg-contrast-amount),
+		var(--explorer-colors-contrast-color)
+	);
+	--background-modifier-border-focus: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) 40%,
+		transparent
+	);
+}
+
+.explorer-color-enabled > .nav-folder-title {
+	color: var(--explorer-colors-current-color);
+
+	--nav-item-background-hover: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-bg-contrast-amount),
+		transparent
+	);
+	--nav-collapse-icon-color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) 60%,
+		transparent
+	);
+}
+
+.explorer-cascade-enabled .nav-folder-title {
+	color: var(--explorer-colors-current-color);
+
+	--nav-item-background-hover: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-bg-contrast-amount),
+		transparent
+	);
+	--nav-collapse-icon-color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) 60%,
+		transparent
+	);
+}
+
+.explorer-color-enabled > .nav-folder-title:hover {
+	--nav-collapse-icon-color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) 60%,
+		var(--explorer-colors-contrast-color)
+	);
+}
+
+.explorer-color-enabled > .nav-file-title {
+	color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount),
+		var(--explorer-colors-default-text-color)
+	);
+
+	--nav-item-background-hover: color-mix(
+		in srgb,
+		color-mix(in srgb, var(--explorer-colors-current-color) 50%, var(--explorer-colors-highlight)) var(--explorer-colors-bg-contrast-amount),
+		transparent
+	);
 	--nav-item-background-active: color-mix(
 		in srgb,
 		var(--explorer-colors-current-color) var(--explorer-colors-active-contrast-amount),
+		transparent
+	);
+}
+
+.explorer-color-enabled > .tree-item-children:has(.nav-file-title) {
+	--nav-indentation-guide-color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount),
+		transparent
+	);
+}
+
+.explorer-cascade-enabled .nav-file-title {
+	color: color-mix(in srgb, var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount), var(--explorer-colors-default-text-color));
+
+	--nav-item-background-hover: color-mix(
+		in srgb,
+		color-mix(in srgb, var(--explorer-colors-current-color) 50%, var(--explorer-colors-highlight)) var(--explorer-colors-bg-contrast-amount),
+		transparent
+	);
+	--nav-item-background-active: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-active-contrast-amount),
+		transparent
+	);
+}
+
+.explorer-cascade-enabled .nav-folder-title:hover {
+	--nav-collapse-icon-color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) 60%,
+		var(--explorer-colors-contrast-color)
+	);
+}
+
+.explorer-cascade-enabled .tree-item-children:has(.nav-file-title) {
+	--nav-indentation-guide-color: color-mix(
+		in srgb,
+		var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount),
 		transparent
 	);
 }

@@ -6,6 +6,7 @@ import {
 	Notice,
 	Plugin,
 	TFolder,
+	ToggleComponent,
 	View,
 } from 'obsidian';
 
@@ -15,6 +16,7 @@ const DEFAULT_SETTINGS: ExplorerColorsSettings = {}
 
 interface NavItemSettings {
 	itemColor?: string;
+	cascadeEnabled?: boolean;
 }
 
 interface FileExplorerItem extends HTMLElement {
@@ -54,10 +56,10 @@ export default class ExplorerColours extends Plugin {
 
 		this.registerEvent(
 			this.app.vault.on('rename', (file, oldPath) => {
-				const existingSettings = this.getItemColor(oldPath);
+				const existingSettings = this.getItemSettings(oldPath);
 				if (existingSettings) {
-					this.addItemColor(file.path, existingSettings);
-					this.removeItemColor(oldPath, false);
+					this.addItemSettings(file.path, existingSettings);
+					this.removeItemSettings(oldPath, false);
 				}
 			}),
 		);
@@ -65,7 +67,7 @@ export default class ExplorerColours extends Plugin {
 
 	onunload() {}
 
-	getData(): Record<string, ExplorerColorsSettings | NavItemSettings> {
+	getData(): Record<string, ExplorerColorsSettings | NavItemSettings | undefined> {
 		return this.data;
 	}
 
@@ -73,37 +75,36 @@ export default class ExplorerColours extends Plugin {
 		return this.data.settings as ExplorerColorsSettings;
 	}
 
-	addItemColor(path: string, colorHex: string) {
-		this.getData()[path] = {
-			itemColor: colorHex,
-		};
-
+	addItemSettings(path: string, settings: NavItemSettings) {
+		this.getData()[path] = settings;
 		this.saveAllData();
 
 		const fileElement = this.findFileElement(path);
 		if (fileElement) {
-			this.applyItemColor(fileElement.el, colorHex);
+			this.applyItemSettings(fileElement.el, settings);
 		}
 	}
 
-	getItemColor(path: string): string | undefined {
-		const pathColorData = this.getData()[path];
+	getItemSettings(path: string): NavItemSettings | undefined {
+		const pathData = this.getData()[path];
 
-		if (!pathColorData) {
+		if (!pathData) {
 			return undefined;
 		}
 
-		return (pathColorData as NavItemSettings).itemColor;
+		return pathData as NavItemSettings;
 	}
 
-	removeItemColor(path: string, redraw = true) {
+	removeItemSettings(path: string, redraw = true) {
 		delete this.getData()[path];
 		this.saveAllData();
 
 		if (redraw) {
 			const fileElement = this.findFileElement(path);
 			if (fileElement) {
-				this.applyItemColor(fileElement.el, 'inherit');
+				fileElement.el.classList.remove('explorer-color-enabled');
+				fileElement.el.classList.remove('explorer-cascade-enabled');
+				fileElement.el.style.removeProperty('--explorer-colors-current-color');
 			}
 		}
 	}
@@ -138,8 +139,15 @@ export default class ExplorerColours extends Plugin {
 		return fileElement;
 	}
 
-	applyItemColor(fileItem: HTMLElement, colorHex: string) {
-		fileItem.setCssProps({'--explorer-colors-current-color': colorHex});
+	applyItemSettings(fileItem: HTMLElement, settings: NavItemSettings) {
+		fileItem.classList.add('explorer-color-enabled');
+		fileItem.style.setProperty('--explorer-colors-current-color', settings?.itemColor || 'inherit')
+
+		if (settings.cascadeEnabled) {
+			fileItem.classList.add('explorer-cascade-enabled');
+		} else {
+			fileItem.classList.remove('explorer-cascade-enabled');
+		}
 	}
 
 	initData() {
@@ -157,7 +165,7 @@ export default class ExplorerColours extends Plugin {
 			for (const [path, value] of data) {
 				const fileItem = (fileExplorer.view as FileExplorerView).fileItems[path];
 				if (fileItem && value.itemColor) {
-					this.applyItemColor(fileItem.el, value.itemColor || 'inherit');
+					this.applyItemSettings(fileItem.el, value);
 				}
 			}
 		}
@@ -167,33 +175,51 @@ export default class ExplorerColours extends Plugin {
 class ColorPickerModal extends Modal {
 	private plugin: ExplorerColours;
 	private readonly path: string;
-	private readonly itemType: string;
+	private readonly itemType: ITEM_TYPE;
 
-	private userColor?: string;
+	private userSettings?: NavItemSettings;
 
-	constructor(app: App, plugin: ExplorerColours, path: string, itemType: string) {
+	constructor(app: App, plugin: ExplorerColours, path: string, itemType: ITEM_TYPE) {
 		super(app);
 		this.plugin = plugin;
 		this.path = path;
 		this.itemType = itemType;
 
-		this.userColor = this.plugin.getItemColor(this.path);
+		this.userSettings = this.plugin.getItemSettings(this.path) || {};
 
-		this.modalEl.classList.add('explorer-colors-color-picker-modal');
+		this.modalEl.classList.add('explorer-colors-item-settings-modal');
 		this.titleEl.setText('Change color');
 
-		// Picker Block
-		const pickerBlock = this.contentEl.createDiv({ cls: 'picker-container' });
+		// Settings Block
+		const settingsBlock = this.contentEl.createDiv({ cls: 'settings-container' });
 
-		pickerBlock.createEl('p', {
+		const pickerSetting = settingsBlock.createDiv();
+		pickerSetting.createEl('p', {
 			text: 'Select a color for this ' + this.itemType,
 			cls: 'picker-description'
 		});
-
-		const colorPicker = new ColorComponent(pickerBlock);
-		colorPicker.setValue(this.userColor || '#000000')
+		const colorPicker = new ColorComponent(pickerSetting);
+		colorPicker.setValue(this.userSettings.itemColor || '#000000')
 			.onChange((value) => {
-				this.userColor = value;
+				if (!this.userSettings) {
+					this.userSettings = {};
+				}
+				this.userSettings.itemColor = value;
+			});
+
+		const cascadeSetting = settingsBlock.createDiv();
+		cascadeSetting.createEl('p', {
+			text: 'Enable Cascade?',
+			cls: 'picker-description'
+		});
+		const toggle = new ToggleComponent(cascadeSetting);
+		toggle.setValue(this.userSettings.cascadeEnabled || false)
+			.setDisabled(itemType == ITEM_TYPE.FILE)
+			.onChange((value) => {
+				if (!this.userSettings) {
+					this.userSettings = {};
+				}
+				this.userSettings.cascadeEnabled = value;
 			});
 
 		// Footer Block
@@ -203,17 +229,17 @@ class ColorPickerModal extends Modal {
 		resetButton.setButtonText('Reset');
 		resetButton.onClick(() => {
 			colorPicker.setValue('#000000');
-			this.userColor = undefined;
+			this.userSettings = undefined;
 		});
 
 		const saveButton = new ButtonComponent(footerBlock);
 		saveButton.setButtonText('Save');
 		saveButton.onClick(() => {
 			new Notice(this.itemType + ' color changed');
-			if (this.userColor) {
-				this.plugin.addItemColor(this.path, this.userColor);
+			if (this.userSettings) {
+				this.plugin.addItemSettings(this.path, this.userSettings);
 			} else {
-				this.plugin.removeItemColor(this.path);
+				this.plugin.removeItemSettings(this.path);
 			}
 			this.close();
 		});

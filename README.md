@@ -12,13 +12,14 @@ I wanted to make my experience easier to manage and more reliable so I decided t
 The plugin is straightforward to use and provides the following features:
 
 - An option to set a color for any file or folder by right-clicking on in item in the Obsidian Explorer and selecting `Set X Color` from the context menu.
-- Render the colors cascading down to child items unless that item has its own color set.
+- Ability to toggle cascading colors on/off for each item tree.
+  - Regardless of this choice, a child item with its own color set will always render that color.
 
 ## Upcoming
 These are a few features that I would like to add in the future:
 
-- Ability to toggle cascading colors on/off via the plugin settings.
 - Option to add/remove colors from a list of favorites for quick access.
+- Ability to set a default color for new files and folders in plugin settings.
 
 If you have any feature requests or suggestions, please feel free to open an issue or preferably, a pull request.
 
