@@ -82,7 +82,7 @@
 }
 
 /* Styles for customised Explorer items */
-.explorer-color-enabled > .nav-file-title, .explorer-color-enabled > .nav-folder-title{
+.explorer-color-enabled > .nav-file-title, .explorer-color-enabled > .nav-folder-title, .explorer-cascade-enabled .nav-file-title, .explorer-cascade-enabled .nav-folder-title {
 	--nav-item-color-hover: color-mix(
 		in srgb,
 		var(--explorer-colors-current-color) var(--explorer-colors-fg-contrast-amount),
@@ -95,20 +95,7 @@
 	);
 }
 
-.explorer-cascade-enabled .nav-file-title, .explorer-cascade-enabled .nav-folder-title {
-	--nav-item-color-hover: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-fg-contrast-amount),
-		var(--explorer-colors-contrast-color)
-	);
-	--background-modifier-border-focus: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) 40%,
-		transparent
-	);
-}
-
-.explorer-color-enabled > .nav-folder-title {
+.explorer-color-enabled > .nav-folder-title, .explorer-cascade-enabled .nav-folder-title {
 	color: var(--explorer-colors-current-color);
 
 	--nav-item-background-hover: color-mix(
@@ -123,22 +110,7 @@
 	);
 }
 
-.explorer-cascade-enabled .nav-folder-title {
-	color: var(--explorer-colors-current-color);
-
-	--nav-item-background-hover: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-bg-contrast-amount),
-		transparent
-	);
-	--nav-collapse-icon-color: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) 60%,
-		transparent
-	);
-}
-
-.explorer-color-enabled > .nav-folder-title:hover {
+.explorer-color-enabled > .nav-folder-title:hover, .explorer-cascade-enabled .nav-folder-title:hover {
 	--nav-collapse-icon-color: color-mix(
 		in srgb,
 		var(--explorer-colors-current-color) 60%,
@@ -146,7 +118,7 @@
 	);
 }
 
-.explorer-color-enabled > .nav-file-title {
+.explorer-color-enabled > .nav-file-title, .explorer-cascade-enabled .nav-file-title {
 	color: color-mix(
 		in srgb,
 		var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount),
@@ -165,38 +137,7 @@
 	);
 }
 
-.explorer-color-enabled > .tree-item-children:has(.nav-file-title) {
-	--nav-indentation-guide-color: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount),
-		transparent
-	);
-}
-
-.explorer-cascade-enabled .nav-file-title {
-	color: color-mix(in srgb, var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount), var(--explorer-colors-default-text-color));
-
-	--nav-item-background-hover: color-mix(
-		in srgb,
-		color-mix(in srgb, var(--explorer-colors-current-color) 50%, var(--explorer-colors-highlight)) var(--explorer-colors-bg-contrast-amount),
-		transparent
-	);
-	--nav-item-background-active: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) var(--explorer-colors-active-contrast-amount),
-		transparent
-	);
-}
-
-.explorer-cascade-enabled .nav-folder-title:hover {
-	--nav-collapse-icon-color: color-mix(
-		in srgb,
-		var(--explorer-colors-current-color) 60%,
-		var(--explorer-colors-contrast-color)
-	);
-}
-
-.explorer-cascade-enabled .tree-item-children:has(.nav-file-title) {
+.explorer-color-enabled > .tree-item-children:has(.nav-file-title), .explorer-cascade-enabled .tree-item-children:has(.nav-file-title) {
 	--nav-indentation-guide-color: color-mix(
 		in srgb,
 		var(--explorer-colors-current-color) var(--explorer-colors-medium-contrast-amount),
