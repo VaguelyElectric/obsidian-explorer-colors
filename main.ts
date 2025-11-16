@@ -63,6 +63,12 @@ export default class ExplorerColours extends Plugin {
 				}
 			}),
 		);
+
+		this.registerEvent(
+			this.app.vault.on('delete', (file) => {
+				this.removeItemSettings(file.path, false);
+			}),
+		);
 	}
 
 	onunload() {}
@@ -79,9 +85,9 @@ export default class ExplorerColours extends Plugin {
 		this.getData()[path] = settings;
 		this.saveAllData();
 
-		const fileElement = this.findFileElement(path);
-		if (fileElement) {
-			this.applyItemSettings(fileElement.el, settings);
+		const fileElements = this.findFileElements(path);
+		for (const element of fileElements) {
+			this.applyItemStyles(element.el, settings);
 		}
 	}
 
@@ -100,11 +106,9 @@ export default class ExplorerColours extends Plugin {
 		this.saveAllData();
 
 		if (redraw) {
-			const fileElement = this.findFileElement(path);
-			if (fileElement) {
-				fileElement.el.classList.remove('explorer-color-enabled');
-				fileElement.el.classList.remove('explorer-cascade-enabled');
-				fileElement.el.style.removeProperty('--explorer-colors-current-color');
+			const fileElements = this.findFileElements(path);
+			for (const element of fileElements) {
+				this.removeItemStyles(element.el);
 			}
 		}
 	}
@@ -125,48 +129,54 @@ export default class ExplorerColours extends Plugin {
 		await this.saveData(this.data);
 	}
 
-	findFileElement(path: string): FileExplorerItem | undefined {
+	findFileElements(path: string): FileExplorerItem[] {
 		const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
-		let fileElement: FileExplorerItem | undefined;
+		let result: FileExplorerItem[] = [];
+
 		for (const fileExplorer of fileExplorers) {
 			if (fileExplorer.isDeferred) {
 				continue;
 			}
 
-			fileElement = (fileExplorer.view as FileExplorerView).fileItems[path];
+			const fileElement = (fileExplorer.view as FileExplorerView).fileItems[path];
+			if (fileElement) {
+				result.push(fileElement);
+			}
 		}
 
-		return fileElement;
+		return result;
 	}
 
-	applyItemSettings(fileItem: HTMLElement, settings: NavItemSettings) {
+	applyItemStyles(fileItem: HTMLElement, settings: NavItemSettings) {
+		this.removeItemStyles(fileItem);
+
 		fileItem.classList.add('explorer-color-enabled');
-		fileItem.style.setProperty('--explorer-colors-current-color', settings?.itemColor || 'inherit')
+		const titleElement = fileItem.getElementsByClassName('tree-item-self')[0] as HTMLElement;
 
 		if (settings.cascadeEnabled) {
+			fileItem.style.setProperty('--explorer-colors-current-color', settings?.itemColor || 'inherit')
 			fileItem.classList.add('explorer-cascade-enabled');
 		} else {
-			fileItem.classList.remove('explorer-cascade-enabled');
+			titleElement.style.setProperty('--explorer-colors-current-color', settings?.itemColor || 'inherit')
 		}
+	}
+
+	removeItemStyles(fileItem: HTMLElement) {
+		fileItem.classList.remove('explorer-color-enabled');
+		fileItem.classList.remove('explorer-cascade-enabled');
+		fileItem.style.removeProperty('--explorer-colors-current-color');
 	}
 
 	initData() {
-		const fileExplorers = this.app.workspace.getLeavesOfType('file-explorer');
 		const data = Object.entries(this.data) as [
 			string,
 			NavItemSettings
 		][];
 
-		for (const fileExplorer of fileExplorers) {
-			if (fileExplorer.isDeferred) {
-				continue;
-			}
-
-			for (const [path, value] of data) {
-				const fileItem = (fileExplorer.view as FileExplorerView).fileItems[path];
-				if (fileItem && value.itemColor) {
-					this.applyItemSettings(fileItem.el, value);
-				}
+		for (const [path, settings] of data) {
+			const fileElements = this.findFileElements(path);
+			for (const element of fileElements) {
+				this.applyItemStyles(element.el, settings);
 			}
 		}
 	}
