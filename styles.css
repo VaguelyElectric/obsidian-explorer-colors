@@ -35,7 +35,7 @@
 	justify-content: end;
 	max-width: 300px;
 }
-.explorer-colors-color-settings-modal .settings-container > div {
+.explorer-colors-item-settings-modal .settings-container > div {
 	width: 100%;
 	margin-bottom: var(--size-2-2);
 	display: flex;
@@ -53,14 +53,14 @@
 	margin-top: var(--size-2-2);
 	margin-right: var(--size-4-4);
 }
-.explorer-colors-color-settings-modal .checkbox-container {
+.explorer-colors-item-settings-modal .checkbox-container {
 	margin-bottom: var(--size-2-2);
 }
 .explorer-colors-item-settings-modal .footer-container button {
 	margin-left: var(--size-4-4);
 	float: right;
 }
-.explorer-colors-color-picker-modal .checkbox-container.is-disabled::after {
+.explorer-colors-item-settings-modal .checkbox-container.is-disabled::after {
 	background-color: gray;
 }
 
