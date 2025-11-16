@@ -2,6 +2,7 @@
 Set cascading colors for files and folders in [Obsidian](https://obsidian.md/).
 
 <img src="docs/explorer-preview-image.png" alt="Explorer Preview Image" width="300"/>
+<img src="docs/modal-preview-image.png" alt="Modal Preview Image" width="500"/>
 
 ## About
 For a while I have been using CSS snippets to customise the colors of files and folders in the Obsidian Explorer. While this worked in principle, it came with several limitations such as not being able to set colors for individual files and folders without indexing them as nth-child elements or by referencing the name of the file or folder. Adding new files and folders would also require updating the CSS snippet otherwise existing colors broke down, additionally, Obsidian could unload the explorer items if many paths were expanded and the items went out of view meaning that nth-child elements would not be applied to the correct items.
