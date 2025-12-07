@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "@app/*": ["src/*"],
+    },
     "inlineSourceMap": true,
     "inlineSources": true,
     "module": "ESNext",
