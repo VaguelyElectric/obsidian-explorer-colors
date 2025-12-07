@@ -4,17 +4,19 @@ import {
 	View,
 } from 'obsidian';
 import ColorPickerModal from './color_picker_modal';
+import ExplorerColorsSettingTab from './explorer_color_settings_tab';
 import {
 	DEFAULT_SETTINGS,
+	ExplorerColorsConfig,
 	ExplorerColorsSettings,
 	FileExplorerItem,
 	FileExplorerView,
 	ITEM_TYPE,
-	NavItemSettings,
+	NavItemData,
 } from './types'
 
-export default class ExplorerColours extends Plugin {
-	private data: Record<string, ExplorerColorsSettings | NavItemSettings>
+export default class ExplorerColors extends Plugin {
+	private data: ExplorerColorsSettings;
 
 	async onload() {
 		await this.loadAllData();
@@ -28,7 +30,7 @@ export default class ExplorerColours extends Plugin {
 					const message = 'Set ' + itemType + ' color';
 					item.setTitle(message)
 						.setIcon('palette')
-						.onClick(async () => {
+						.onClick(() => {
 							new ColorPickerModal(this.app, this, file.path, itemType).open();
 						});
 				});
@@ -37,7 +39,7 @@ export default class ExplorerColours extends Plugin {
 
 		this.registerEvent(
 			this.app.vault.on('rename', (file, oldPath) => {
-				const existingSettings = this.getItemSettings(oldPath);
+				const existingSettings = this.getItemData(oldPath);
 				if (existingSettings) {
 					this.addItemSettings(file.path, existingSettings);
 					this.removeItemSettings(oldPath, false);
@@ -50,20 +52,46 @@ export default class ExplorerColours extends Plugin {
 				this.removeItemSettings(file.path, false);
 			}),
 		);
+
+	    this.addSettingTab(new ExplorerColorsSettingTab(this.app, this));
 	}
 
 	onunload() {}
 
-	getData(): Record<string, ExplorerColorsSettings | NavItemSettings | undefined> {
-		return this.data;
+	getItemData(path: string): NavItemData | undefined {
+		return this.data.itemData[path];
 	}
 
-	getSettings(): ExplorerColorsSettings {
-		return this.data.settings as ExplorerColorsSettings;
+	setItemData(path: string, data: NavItemData) {
+		this.data.itemData[path] = data;
 	}
 
-	addItemSettings(path: string, settings: NavItemSettings) {
-		this.getData()[path] = settings;
+	removeItemData(path: string) {
+		delete this.data.itemData[path];
+	}
+
+	removeAllItemData() {
+		Object.entries(this.data.itemData).forEach(([path, _]) => {
+			const fileElements = this.findFileElements(path);
+			for (const element of fileElements) {
+				this.removeItemStyles(element.el);
+			}
+		});
+		this.data.itemData = {};
+		// this.saveAllData();
+	}
+
+	getPluginConfig(): ExplorerColorsConfig {
+		return this.data.pluginConfig;
+	}
+
+	setPluginConfig(config: ExplorerColorsConfig) {
+		this.data.pluginConfig = config;
+		this.saveAllData();
+	}
+
+	addItemSettings(path: string, settings: NavItemData) {
+		this.setItemData(path, settings);
 		this.saveAllData();
 
 		const fileElements = this.findFileElements(path);
@@ -72,18 +100,8 @@ export default class ExplorerColours extends Plugin {
 		}
 	}
 
-	getItemSettings(path: string): NavItemSettings | undefined {
-		const pathData = this.getData()[path];
-
-		if (!pathData) {
-			return undefined;
-		}
-
-		return pathData as NavItemSettings;
-	}
-
 	removeItemSettings(path: string, redraw = true) {
-		delete this.getData()[path];
+		this.removeItemData(path);
 		this.saveAllData();
 
 		if (redraw) {
@@ -95,15 +113,27 @@ export default class ExplorerColours extends Plugin {
 	}
 
 	async loadAllData() {
-		const data = await this.loadData();
-		if (data) {
-			Object.entries(DEFAULT_SETTINGS).forEach(([key, value]) => {
-				if (data.settings[key] == undefined) {
-					data.settings[key] = value;
+		const loadedData = await this.loadData();
+
+		var data: ExplorerColorsSettings = DEFAULT_SETTINGS;
+		if (loadedData) {
+			if (loadedData['itemData'] != undefined) {
+				data.itemData = loadedData['itemData']
+			}
+			if (loadedData['pluginConfig'] != undefined) {
+				data.pluginConfig = loadedData['pluginConfig']
+			}
+			// Migrate from old structure
+			Object.entries(loadedData).forEach(([key, _]) => {
+				let keys = Object.keys(DEFAULT_SETTINGS)
+				if (keys.includes(key)) {
+					delete loadedData[key]
 				}
 			});
 		}
-		this.data = Object.assign({ settings: { ...DEFAULT_SETTINGS } }, {}, data)
+
+		data.itemData = Object.assign({ ...data.itemData}, {}, loadedData);
+		this.data = data;
 	}
 
 	async saveAllData() {
@@ -128,7 +158,7 @@ export default class ExplorerColours extends Plugin {
 		return result;
 	}
 
-	applyItemStyles(fileItem: HTMLElement, settings: NavItemSettings) {
+	applyItemStyles(fileItem: HTMLElement, settings: NavItemData) {
 		this.removeItemStyles(fileItem);
 
 		fileItem.classList.add('explorer-color-enabled');
@@ -149,9 +179,9 @@ export default class ExplorerColours extends Plugin {
 	}
 
 	initData() {
-		const data = Object.entries(this.data) as [
+		const data = Object.entries(this.data.itemData) as [
 			string,
-			NavItemSettings
+			NavItemData
 		][];
 
 		for (const [path, settings] of data) {

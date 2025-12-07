@@ -6,26 +6,26 @@ import {
     ButtonComponent,
     Notice,
 } from 'obsidian';
-import ExplorerColours from '@app/main';
+import ExplorerColors from '@app/main';
 import {
     ITEM_TYPE,
-    NavItemSettings
+    NavItemData
 } from './types'
 
 export default class ColorPickerModal extends Modal {
-	private plugin: ExplorerColours;
+	private plugin: ExplorerColors;
 	private readonly path: string;
 	private readonly itemType: ITEM_TYPE;
 
-	private userSettings?: NavItemSettings;
+	private userSettings?: NavItemData;
 
-	constructor(app: App, plugin: ExplorerColours, path: string, itemType: ITEM_TYPE) {
+	constructor(app: App, plugin: ExplorerColors, path: string, itemType: ITEM_TYPE) {
 		super(app);
 		this.plugin = plugin;
 		this.path = path;
 		this.itemType = itemType;
 
-		this.userSettings = this.plugin.getItemSettings(this.path) || {};
+		this.userSettings = this.plugin.getItemData(this.path) || {};
 
 		this.modalEl.classList.add('explorer-colors-item-settings-modal');
 		this.titleEl.setText('Change color');
@@ -39,7 +39,8 @@ export default class ColorPickerModal extends Modal {
 			cls: 'picker-description'
 		});
 		const colorPicker = new ColorComponent(pickerSetting);
-		colorPicker.setValue(this.userSettings?.itemColor || '#000000')
+        const initColorValue = this.userSettings?.itemColor || this.plugin.getPluginConfig().defaultColor;
+		colorPicker.setValue(initColorValue || '')
 			.onChange((value) => {
 				if (!this.userSettings) {
 					this.userSettings = {};

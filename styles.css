@@ -144,3 +144,31 @@
 		transparent
 	);
 }
+
+.explorer-colors-settings-tab button.reset-action {
+	vertical-align: text-bottom;
+    font-size: x-small;
+    box-shadow: none;
+    background-color: inherit;
+	padding: 0;
+    margin: 4px 12px;
+	cursor: pointer;
+	max-height: 10px;
+	color: color-mix(
+		in srgb,
+		var(--text-normal),
+		transparent
+	);
+}
+
+.explorer-colors-settings-tab .reset-all button {
+	cursor: pointer;
+}
+
+.explorer-colors-confirmation-modal .footer-container {
+	margin-top: var(--size-2-2);
+}
+.explorer-colors-confirmation-modal .footer-container button {
+	margin-left: var(--size-4-4);
+	float: right;
+}
