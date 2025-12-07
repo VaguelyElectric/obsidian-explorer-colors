@@ -1,5 +1,5 @@
 # Explorer Colors
-Set cascading colors for files and folders in [Obsidian](https://obsidian.md/).
+[Obsidian](https://obsidian.md/) Plugin that allows for Files and Folders to be configured with custom colors and other settings.
 
 <img src="docs/explorer-preview-image.png" alt="Explorer Preview Image" width="300"/>
 <img src="docs/modal-preview-image.png" alt="Modal Preview Image" width="500"/>
@@ -15,12 +15,12 @@ The plugin is straightforward to use and provides the following features:
 - An option to set a color for any file or folder by right-clicking on in item in the Obsidian Explorer and selecting `Set X Color` from the context menu.
 - Ability to toggle cascading colors on/off for each item tree.
   - Regardless of this choice, a child item with its own color set will always render that color.
+- Ability to set the default color for the picker when setting to new files or folders.
 
 ## Upcoming
 These are a few features that I would like to add in the future:
 
 - Option to add/remove colors from a list of favorites for quick access.
-- Ability to set a default color for new files and folders in plugin settings.
 
 If you have any feature requests or suggestions, please feel free to open an issue or preferably, a pull request.
 
