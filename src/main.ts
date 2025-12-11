@@ -78,7 +78,7 @@ export default class ExplorerColors extends Plugin {
 			}
 		});
 		this.data.itemData = {};
-		// this.saveAllData();
+		this.saveAllData();
 	}
 
 	getPluginConfig(): ExplorerColorsConfig {
