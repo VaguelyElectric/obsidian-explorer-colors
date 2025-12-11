@@ -1,7 +1,7 @@
 {
 	"id": "explorer-colors",
 	"name": "Explorer Colors",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"minAppVersion": "1.10.0",
 	"description": "Allows for files and folders to be configured with custom colors and other settings.",
 	"author": "VaguelyElectric",
